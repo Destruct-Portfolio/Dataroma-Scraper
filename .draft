@@ -1,0 +1,24 @@
+Superinvestors 
+    https://www.dataroma.com/m/managers.php
+
+    table: #grid > tbody > tr
+    element:  td.man > a // grab both link and text
+        table: #grid > tbody > tr
+        element: td.stock > a // grab text
+        2# element: td.hist > a // grab link
+            table: #grid > tbody > tr
+            elements: // handle some tds
+
+Activity
+    https://www.dataroma.com/m/allact.php?typ=a
+
+    table: #grid > tbody > tr
+    elements: // handle some tds
+
+Grand Portfolio
+    https://www.dataroma.com/m/g/portfolio.php?L=2 // there is pagination
+
+    pages: #pages > a // previous to last one contains the max number of pages
+
+    table: #grid > tbody > tr
+    elements: // handle some tds

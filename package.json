@@ -1,0 +1,48 @@
+{
+	"name": "create-crawlee-puppeteer-app",
+	"version": "1.0.0",
+	"type": "module",
+	"main": "./dist/index.js",
+	"description": "A boilerplate for crawler/scraper applications.",
+	"bin": {
+		"create-crawlee-puppeteer-app": "./bin/generate-app.js"
+	},
+	"engines": {
+		"node": ">=16.0.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Destruct-Portfolio/create-crawlee-puppeteer-app"
+	},
+	"dependencies": {
+		"@destruct/puppeteer-wrapper": "^1.0.2",
+		"apify": "^3.0.0",
+		"crawlee": "^3.0.0",
+		"puppeteer": "*"
+	},
+	"devDependencies": {
+		"@apify/eslint-config-ts": "^0.2.3",
+		"@apify/tsconfig": "^0.1.0",
+		"@typescript-eslint/eslint-plugin": "^5.55.0",
+		"@typescript-eslint/parser": "^5.55.0",
+		"eslint": "^8.36.0",
+		"prompt-sync": "^4.2.0",
+		"replace-in-file": "^7.0.1",
+		"signale": "^1.4.0",
+		"ts-node": "^10.9.1",
+		"typescript": "^4.9.5"
+	},
+	"scripts": {
+		"start": "npm run start:dev",
+		"start:prod": "node dist/index.js",
+		"start:dev": "ts-node-esm -T src/index.ts",
+		"prebuild": "rimraf dist/*",
+		"build": "tsc",
+		"lint": "eslint ./src --ext .ts",
+		"lint:fix": "eslint ./src --ext .ts --fix",
+		"forge:router": "copyfiles -f ./templates/routes.ts ./src/routes/ && renamer --silent ./src/routes/* --find routes.ts --replace",
+		"test": "echo \"Error: oops, the actor has no tests yet, sad!\" && exit 1"
+	},
+	"author": "Destruct<destruct.space@gmail.com>",
+	"license": "ISC"
+}
