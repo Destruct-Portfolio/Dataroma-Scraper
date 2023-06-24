@@ -16,6 +16,7 @@
 	},
 	"dependencies": {
 		"@destruct/puppeteer-wrapper": "^1.0.2",
+		"@mrodrig/json-2-csv-cli": "^4.1.0",
 		"apify": "^3.0.0",
 		"crawlee": "^3.0.0",
 		"puppeteer": "*"
@@ -34,14 +35,18 @@
 	},
 	"scripts": {
 		"start": "npm run start:dev",
-		"start:prod": "node dist/index.js",
-		"start:dev": "ts-node-esm -T src/index.ts",
+		"start:prod": "node dist/index.js && npm run finalize",
+		"start:dev": "ts-node-esm -T src/index.ts && npm run finalize",
 		"prebuild": "rimraf dist/*",
 		"build": "tsc",
 		"lint": "eslint ./src --ext .ts",
 		"lint:fix": "eslint ./src --ext .ts --fix",
 		"forge:router": "copyfiles -f ./templates/routes.ts ./src/routes/ && renamer --silent ./src/routes/* --find routes.ts --replace",
-		"test": "echo \"Error: oops, the actor has no tests yet, sad!\" && exit 1"
+		"test": "echo \"Error: oops, the actor has no tests yet, sad!\" && exit 1",
+		"convert:superinvestors": "json2csv ./storage/key_value_stores/default/superinvestors.json -o output/superinvestors.csv",
+		"convert:grand_portfolio": "json2csv ./storage/key_value_stores/default/grand_portfolio.json -o output/grand_portfolio.csv",
+		"convert:activity": "json2csv ./storage/key_value_stores/default/activity.json -o output/activity.csv",
+		"finalize": "npm run convert:superinvestors && npm run convert:activity && npm run convert:grand_portfolio"
 	},
 	"author": "Destruct<destruct.space@gmail.com>",
 	"license": "ISC"

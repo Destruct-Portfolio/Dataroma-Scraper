@@ -1,9 +1,13 @@
 import { EnhancedPuppeteerForCrawlee } from "@destruct/puppeteer-wrapper";
-import { Dataset, Log } from "crawlee";
+import { CrawlingContext, KeyValueStore, Log, RequestQueue, enqueueLinks } from "crawlee";
 import { Page } from "puppeteer";
+import { SELECTORS } from "../constants/superinvestors.js";
+import { BASE_URL } from "../constants/shared.js";
+import { columnSplitter } from "../adapters/superinvestors.js";
+import { SuperinvestorsEntryT } from "../types/superinvestors.js";
 
 
-const BASE_URL = "https://www.dataroma.com"
+
 /*
 Superinvestors 
     https://www.dataroma.com/m/managers.php
@@ -16,45 +20,16 @@ Superinvestors
             table: #grid > tbody > tr
             elements: // handle some tds
 */
-export async function handleSuperinvestors(config: { page: Page, log: Log } ){
+export async function handleSuperinvestors(config: { page: Page, log: Log, enqueueLinks: CrawlingContext["enqueueLinks"] } ){
     const { page, log: logger } = config
     const scraper = new EnhancedPuppeteerForCrawlee({
         page,
         logger
     })
 
-    const SELECTORS = {
-        shared: "#grid > tbody > tr",
-        1: {
-            elements: {
-                manager: "td.man > a"
-            }
-        },
-        2: {
-            elements: {
-                stock: "td.stock > a",
-                history: "td.hist > a"
-            }
-        },
-        3: {
-            elements: {
-                period: "td:nth-child(1)",
-                shares: "td:nth-child(2)",
-                percentage_of_portfolio: "td:nth-child(3)",
-                activity: "td:nth-child(4)",
-                percentage_change_to_portfolio: "td:nth-child(5)",
-                reported_price: "td:nth-child(6)",
-            }
-        }
-    }
 
-    let results: Array<Array<string>> = []
-    const headers = [
-        ...Object.keys(SELECTORS[1].elements),
-        ...[Object.keys(SELECTORS[2].elements)[0]],
-        ...Object.keys(SELECTORS[3].elements)
-    ].map(key=>key.replaceAll('_', ' ').trim())
-    results.push(headers)
+
+    await KeyValueStore.setValue('superinvestors', [])
 
     const managers = await scraper.page
         .$$eval(
@@ -76,69 +51,21 @@ export async function handleSuperinvestors(config: { page: Page, log: Log } ){
               return listing;
             }, SELECTORS[1].elements);
 
-    scraper.logger.info(`Scrapped ${managers.length} portfolio manager.`)
-    let superinvestors_results: Array<Array<string>> = []
+    const queue = await RequestQueue.open();
+
+    scraper.logger.info(`Found ${managers.length} portfolio manager(s).`)
     for(const manager of managers){
         const [manager_name, link] = manager
-        await scraper.navigate(BASE_URL+link)
-        const stocks = await scraper.page
-            .$$eval(
-                SELECTORS.shared,
-                (rows, selectors)=>{
-        
-                let listing: Array<Array<string>> = []
-                    for(const row of rows){
-                        let stock = row.querySelector(selectors.stock)?.textContent || ""
-                        let history_link = row.querySelector(selectors.history)?.getAttribute('href') || ""
-
-                        if(history_link==="") continue
-                        listing.push([
-                            stock,
-                            history_link
-                        ])
-                    }
-                return listing;
-                }, SELECTORS[2].elements);
-
-        for(const stock of stocks) {
-            const [stock_name, link] = stock
-            await scraper.navigate(BASE_URL+link)
-            const history = await scraper.page
-            .$$eval(
-                SELECTORS.shared,
-                (rows, selectors)=>{
-        
-                let listing: Array<Array<string>> = []
-                    for(const row of rows){
-                        const line: Array<string> = []
-                        for(const column of Object.keys(selectors)){
-                            line.push(row.querySelector(selectors[column as keyof typeof selectors])?.textContent || "")
-                        }
-                        listing.push(line)
-                    }
-                return listing;
-                }, SELECTORS[3].elements);
-
-            const superinvestor_results = history.map(
-                entry=>[manager_name, stock_name, ...entry]
-            )
-            
-            superinvestors_results = [
-                ...superinvestors_results,
-                ...superinvestor_results
-            ]
-        }
-        
-        break;
+        const url = BASE_URL+link
+        logger.info(`Checking [${manager}] portfolio | ${url}`)
+        await enqueueLinks({
+            urls: [url],
+            label: 'superinvestors_stocks',
+            requestQueue: queue,
+            userData: {
+                manager_name
+            }
+        })
     }
 
-
-    results = [
-        ...results,
-        ...superinvestors_results
-    ]
-
-    Dataset.pushData({
-        superinvestors: results
-    })
 }

@@ -8,7 +8,7 @@
 import { Actor } from 'apify';
 // For more information, see https://crawlee.dev
 import { PuppeteerCrawler } from 'crawlee';
-import { router } from './routes/routes.js';
+import { router } from './routes/default.js';
 import { SUPERINVESTORS, ACTIVITY, GRAND_PORTFOLIO } from './routes/links.js';
 
 // Initialize the Apify SDK

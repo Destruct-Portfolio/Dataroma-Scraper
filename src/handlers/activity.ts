@@ -1,6 +1,8 @@
 import { Page } from "puppeteer";
 import { EnhancedPuppeteerForCrawlee }  from "@destruct/puppeteer-wrapper"
-import { Dataset, Log } from "crawlee";
+import { Dataset, KeyValueStore, Log } from "crawlee";
+import { SELECTORS } from "../constants/activity.js";
+import { ActivityEntryT } from "../types/activity.js";
 /*
 Activity
     https://www.dataroma.com/m/allact.php?typ=a
@@ -15,26 +17,16 @@ export async function handleActivity(config: { page: Page, log: Log } ){
         logger
     })
 
-    const SELECTORS = {
-        list: "#grid > tbody > tr",
-        elements: {
-            portfolio_manager: "td.firm > a",
-            period: "td.period",
-            sells: "td > span > a.sell",
-            buys: "td > span > a.buy"
-        }
-    }
 
-    let results: Array<Array<string>> = []
-    const headers = Object.keys(SELECTORS.elements).map(key=>key.replaceAll('_', ' ').trim())
-    results.push(headers)
-    
+
+    let results: Array<ActivityEntryT> = []
+
     const activity_results = await scraper.page
     .$$eval(
       SELECTORS.list,
       (rows, selectors)=>{
 
-        let listing: Array<Array<string>> = []
+        let listing: Array<ActivityEntryT> = []
         for(const row of rows) {
             let portfolio_manager = row.querySelector(selectors.portfolio_manager)?.textContent || "";
             let period = row.querySelector(selectors.period)?.textContent || "";
@@ -49,12 +41,12 @@ export async function handleActivity(config: { page: Page, log: Log } ){
                 if(stock) buys.push(stock)
             })
 
-            listing.push([
+            listing.push({
                 portfolio_manager,
                 period,
-                sells.join(','),
-                buys.join(',')
-            ])
+                sells: sells.join(','),
+                buys: buys.join(',')
+            })
         }
 
         return listing;
@@ -65,6 +57,6 @@ export async function handleActivity(config: { page: Page, log: Log } ){
         ...activity_results
     ]
     scraper.logger.info(`Finished extracting activity.`)
-    // save results
-    Dataset.pushData({ activity: results })
+
+    await KeyValueStore.setValue("activity", results)
 }
