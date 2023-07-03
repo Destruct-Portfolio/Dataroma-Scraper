@@ -1,5 +1,5 @@
 {
-	"name": "create-crawlee-puppeteer-app",
+	"name": "dataroma-scraper",
 	"version": "1.0.0",
 	"type": "module",
 	"main": "./dist/index.js",

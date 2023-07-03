@@ -1,5 +1,5 @@
 import { EnhancedPuppeteerForCrawlee } from "@destruct/puppeteer-wrapper";
-import { CrawlingContext, KeyValueStore, Log, RequestQueue, enqueueLinks } from "crawlee";
+import { CrawlingContext, Dataset, KeyValueStore, Log, RequestQueue, enqueueLinks } from "crawlee";
 import { Page } from "puppeteer";
 import { SELECTORS } from "../constants/superinvestors.js";
 import { BASE_URL } from "../constants/shared.js";
@@ -51,10 +51,12 @@ export async function handleSuperinvestors(config: { page: Page, log: Log, enque
               return listing;
             }, SELECTORS[1].elements);
 
+    Dataset.pushData({managers: managers})
     const queue = await RequestQueue.open();
 
     scraper.logger.info(`Found ${managers.length} portfolio manager(s).`)
-    for(const manager of managers){
+    for(const [index, manager] of managers.entries()){
+        if(index !== 2) continue;
         const [manager_name, link] = manager
         const url = BASE_URL+link
         logger.info(`Checking [${manager}] portfolio | ${url}`)

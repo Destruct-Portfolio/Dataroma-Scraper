@@ -12,42 +12,42 @@ export function addSuperinvestorsHandler(){
         const SELECTORS = Superinvestors_SELECTORS
     
         const manager_name = USERDATA['manager_name']
+
         const stocks = await page
-                .$$eval(
-                    SELECTORS.shared,
-                    (rows, selectors)=>{
-                    let listing: Array<Array<string>> = []
-                        for(const row of rows){
-                            let stock = row.querySelector(selectors.stock)?.textContent || ""
-                            let history_link = row.querySelector(selectors.history)?.getAttribute('href') || ""
-    
-                            if(history_link==="") continue
-                            listing.push([
-                                stock,
-                                history_link
-                            ])
-                        }
-                    return listing;
-                    }, SELECTORS[2].elements);
-    
-            const queue = await RequestQueue.open();
-            log.info(`[${manager_name}] | Found ${stocks.length} stocks.`)
-            for(const stock of stocks) {
-                const [stock_name, link] = stock
-                const url = BASE_URL+link
-                log.info(`[${manager_name}] | Grabbing ${stock_name} stock history.`)
-                await enqueueLinks({
-                    urls: [url],
-                    label: "superinvestors_history",
-                    requestQueue: queue,
-                    userData: {
-                        manager_name,
-                        stock_name
+            .$$eval(
+                SELECTORS.shared,
+                (rows, selectors)=>{
+                let listing: Array<Array<string>> = []
+                    for(const row of rows){
+                        let stock = row.querySelector(selectors.stock)?.textContent || ""
+                        let history_link = row.querySelector(selectors.history)?.getAttribute('href') || ""
+
+                        if(history_link==="") continue
+                        listing.push([
+                            stock,
+                            history_link
+                        ])
                     }
-                })
-    
-            }
-    
+                return listing;
+                }, SELECTORS[2].elements);
+
+        const queue = await RequestQueue.open();
+        log.info(`[${manager_name}] | Found ${stocks.length} stocks.`)
+        for(const stock of stocks) {
+            const [stock_name, link] = stock
+            const url = BASE_URL+link
+            log.info(`[${manager_name}] | Grabbing ${stock_name} stock history.`)
+            await enqueueLinks({
+                urls: [url],
+                label: "superinvestors_history",
+                requestQueue: queue,
+                userData: {
+                    manager_name,
+                    stock_name
+                }
+            })
+
+        }
     })
     
     router.addHandler('superinvestors_history', async ({ page, request, log })=> {

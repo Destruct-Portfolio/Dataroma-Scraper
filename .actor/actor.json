@@ -1,8 +1,8 @@
 {
 	"actorSpecification": 1,
-	"name": "my-typescript-actor",
-	"title": "Project Puppeteer Crawler Typescript",
-	"description": "Crawlee and Puppeteer project in typescript.",
+	"name": "dataroma-scraper",
+	"title": "Dataroma Scraper",
+	"description": "",
 	"version": "0.0",
 	"meta": {
 		"templateId": "ts-crawlee-puppeteer-chrome"
